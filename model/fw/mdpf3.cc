@@ -1,7 +1,7 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil -*- */
 // custom-strategy.cc
 
-#include "deviation3.h"
+#include "mdpf3.h"
 
 #include "ns3/ndn-interest.h"
 #include "ns3/ndn-pit.h"
@@ -25,60 +25,62 @@
 #define EPSILON 0.000001 
 namespace ll = boost::lambda;
 
-//NS_LOG_COMPONENT_DEFINE ("ndn.fw.GreenYellowRed.DeviationStrategy3");
+//NS_LOG_COMPONENT_DEFINE ("ndn.fw.GreenYellowRed.MDPF3Strategy");
 
 namespace ns3 {
 namespace ndn {
 namespace fw {
 
-NS_OBJECT_ENSURE_REGISTERED (DeviationStrategy3);
+NS_OBJECT_ENSURE_REGISTERED (MDPF3Strategy);
 
-LogComponent DeviationStrategy3::g_log = LogComponent (DeviationStrategy3::GetLogName ().c_str ());
+LogComponent MDPF3Strategy::g_log = LogComponent (MDPF3Strategy::GetLogName ().c_str ());
 
 
-struct FaceMetricForMDPF3ByStatus
+struct FaceMetricWithPIByStatus
 {
-  typedef FaceMetricForMDPF3Container::type::index<i_status>::type type;
+  typedef FaceMetricWithPIContainer::type::index<i_status>::type type;
 };
 
 
 //This function is used to fetch the LogName. Since super::GetLogName () is defined in ndn-forwarding-strategy in which it returns "ndn.fw",
-//so the log name for this model is "ndn.fw.DeviationStrategy3".
-//When we want to see the log of this model, use NS_LOG=ndn.fw.DeviationStrategy3 please.
+//so the log name for this model is "ndn.fw.MDPF3Strategy".
+//When we want to see the log of this model, use NS_LOG=ndn.fw.MDPF3Strategy please.
 std::string
-DeviationStrategy3::GetLogName ()
+MDPF3Strategy::GetLogName ()
 {
-  return super::GetLogName ()+".DeviationStrategy3";
+  return super::GetLogName ()+".MDPF3Strategy";
 }
 
 
 TypeId
-DeviationStrategy3::GetTypeId (void)
+MDPF3Strategy::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::ndn::fw::DeviationStrategy3")
+  static TypeId tid = TypeId ("ns3::ndn::fw::MDPF3Strategy")
     .SetGroupName ("Ndn")
     .SetParent <super> ()
-    .AddConstructor <DeviationStrategy3> ()
+    .AddConstructor <MDPF3Strategy> ()
     ;
   return tid;
 }
 
-DeviationStrategy3::DeviationStrategy3 ()
+MDPF3Strategy::MDPF3Strategy ()
 {
-//  NS_LOG_INFO ("intiate DeviationStrategy3");
+//  NS_LOG_INFO ("intiate MDPF3Strategy");
 }
 
 bool
-DeviationStrategy3::DoPropagateInterest (Ptr<Face> inFace,
+MDPF3Strategy::DoPropagateInterest (Ptr<Face> inFace,
                                 Ptr<const Interest> interest,
                                 Ptr<pit::Entry> pitEntry)
 {
-//   NS_LOG_INFO ("Begin solving forwarding");
-  FaceMetricForMDPF3Container::type FacesContainer;
+  FaceMetricWithPIContainer::type FacesContainer;
   int propagatedCount = 0;
-  std::cout << "receive from " << inFace->GetId() << "\n";
+  UniformVariable x (0.0,1.0);
+  double p = x.GetValue ();
+  double per_probability=  0.0;
+  double total_score = 0.0;
   
-//   NS_LOG_DEBUG ("Trying to translate fib to fib_with_entroy");
+  std::cout << "receive from " << inFace->GetId() << "\n";
   
   std::cout << "alternative faces are:\n";
   BOOST_FOREACH (const fib::FaceMetric &metricFace, pitEntry->GetFibEntry ()->m_faces.get<fib::i_metric> ())
@@ -86,13 +88,10 @@ DeviationStrategy3::DoPropagateInterest (Ptr<Face> inFace,
     if(metricFace.GetFace() != inFace)
     {
         std::cout << metricFace.GetFace()->GetId() << "\t";
-        FacesContainer.insert(FaceMetricForMDPF3( metricFace.GetFace(),metricFace.GetStatus(),metricFace.GetSRtt(),metricFace.GetRoutingCost(), metricFace.GetWeight() ) ); 
+        FacesContainer.insert(FaceMetricWithPI( metricFace.GetFace(),metricFace.GetStatus(),metricFace.GetSRtt(),metricFace.GetRoutingCost(), metricFace.GetWeight() ) ); 
     }
   }
   std::cout << "\n";
-  
-//   NS_LOG_DEBUG ("the interest is " << *interest<<" the size of fib_with_entroy = "<<FacesContainer.size());
-//   NS_LOG_DEBUG ("the interest is " << *interest<<" the size of fib = "<<pitEntry->GetFibEntry ()->m_faces.size());
   
   //data standard pre-process
   if(FacesContainer.size() >= 1 )
@@ -112,24 +111,13 @@ DeviationStrategy3::DoPropagateInterest (Ptr<Face> inFace,
     
     double efficacy_coefficient = 0.95;
     
-    int FaceNum = 0;
-    
-//    double status_sum = 0.0;
-//    double m_sRtt_sum = 0.0;
-//    double m_pi_sum = 0.0;
-    
+    int FaceNum = 0;   
     double status_vector[10];
     double sRtt_vector[10];
     double PI_vector[10];
     
-//     NS_LOG_INFO("status_max="<<status_max<<",status_min="<<status_min<<
-// 	",srtt_max="<<srtt_max<<",srtt_min="<<srtt_min
-//       ); 
-    //data standard process
-    //FaceMetricForMDPF3ByStatus must be corresponding to i_status
-    
 // (3)
-    for (FaceMetricForMDPF3ByStatus::type::iterator FaceIteratorByStatus = FacesContainer.get<i_status> ().begin();
+    for (FaceMetricWithPIByStatus::type::iterator FaceIteratorByStatus = FacesContainer.get<i_status> ().begin();
        FaceIteratorByStatus !=  FacesContainer.get<i_status> ().end (); FaceIteratorByStatus ++)
     {
       double status_formal = ( status_max -  boost::lexical_cast<int>( FaceIteratorByStatus->GetStatus ()) ) * efficacy_coefficient / 
@@ -145,9 +133,9 @@ DeviationStrategy3::DoPropagateInterest (Ptr<Face> inFace,
       PI_vector[FaceNum] = m_pi_formal;
       FaceNum ++;
 	
-      FacesContainer.modify (FaceIteratorByStatus, ll::bind (&FaceMetricForMDPF3::SetStatusFormal, ll::_1, status_formal));
-      FacesContainer.modify (FaceIteratorByStatus, ll::bind (&FaceMetricForMDPF3::SetSRttFormal, ll::_1, m_sRtt_formal));
-      FacesContainer.modify (FaceIteratorByStatus, ll::bind (&FaceMetricForMDPF3::SetPIFormal, ll::_1, m_pi_formal));
+      FacesContainer.modify (FaceIteratorByStatus, ll::bind (&FaceMetricWithPI::SetStatusFormal, ll::_1, status_formal));
+      FacesContainer.modify (FaceIteratorByStatus, ll::bind (&FaceMetricWithPI::SetSRttFormal, ll::_1, m_sRtt_formal));
+      FacesContainer.modify (FaceIteratorByStatus, ll::bind (&FaceMetricWithPI::SetPIFormal, ll::_1, m_pi_formal));
     }
     
     double v1 = 0.0;
@@ -193,59 +181,37 @@ DeviationStrategy3::DoPropagateInterest (Ptr<Face> inFace,
     std::cout << "weight1\t" << status_weight << "\tweight2\t" << m_sRtt_weight << "\tweight3\t" << m_pi_weight << "\n";
     
 // (5)
-    double max_score = 0.0;
     Ptr<Face> outFace = NULL;
     
-    for (FaceMetricForMDPF3ByStatus::type::iterator FaceIteratorByStatus = FacesContainer.get<i_status> ().begin();
+    for (FaceMetricWithPIByStatus::type::iterator FaceIteratorByStatus = FacesContainer.get<i_status> ().begin();
        FaceIteratorByStatus !=  FacesContainer.get<i_status> ().end (); FaceIteratorByStatus ++)
     {
       double score = status_weight * FaceIteratorByStatus->GetStatusFormal() + m_sRtt_weight * FaceIteratorByStatus->GetSRttFormal() + m_pi_weight * FaceIteratorByStatus->GetPIFormal();
-      FacesContainer.modify (FaceIteratorByStatus, ll::bind (&FaceMetricForMDPF3::SetScore, ll::_1, score)); 
+      total_score += score;
+      FacesContainer.modify (FaceIteratorByStatus, ll::bind (&FaceMetricWithPI::SetScore, ll::_1, score)); 
       std::cout << FaceIteratorByStatus->GetFace()->GetId() << " score \t" << score << "\t";
     } 
     std::cout << "\n";
     
-    BOOST_FOREACH (const FaceMetricForMDPF3 &FaceIteratorByScore, FacesContainer.get<i_score> ())
-    {     
-      if(FaceIteratorByScore.GetScore() > max_score)
+    BOOST_FOREACH (const FaceMetricWithPI &FaceIteratorByScore, FacesContainer.get<i_score>())
+    {
+      per_probability += FaceIteratorByScore.GetScore() / total_score; //modified
+      if(per_probability < p)
       {
-	  max_score = FaceIteratorByScore.GetScore();
-	  outFace = FaceIteratorByScore.GetFace();
+	continue;
       }
-    }
-      
-      if(TrySendOutInterest(inFace, outFace, interest, pitEntry))
+      outFace = FaceIteratorByScore.GetFace();
+      if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
       {
-          pitEntry->GetFibEntry ()->IncreaseFacePI(outFace);
-          pitEntry->GetFibEntry ()->UpdateFaceWeight(outFace);
-	  propagatedCount ++;
+	  pitEntry->GetFibEntry ()->IncreaseFacePI(outFace);
+	  pitEntry->GetFibEntry ()->UpdateFaceWeight(outFace);
+	  std::cout << "forward by " << outFace->GetId() << "\n";
+	  propagatedCount++;
+	  break; // do only once;
       }
-      std::cout << "forward by " << outFace->GetId() << "\n";
+    }     
     
   }
-//   else
-//   {
-//       std::cout << "only one face to forward !!!!!\n";
-//       BOOST_FOREACH (const fib::FaceMetric &metricFace, pitEntry->GetFibEntry ()->m_faces.get<fib::i_metric> ())
-// 	{
-// 	  NS_LOG_DEBUG ("Trying " << boost::cref(metricFace));
-// 
-// 	  if (!TrySendOutInterest (inFace, metricFace.GetFace (), interest, pitEntry))
-// 	    {
-// 	      continue;
-// 	    }
-// 
-// 	  pitEntry->GetFibEntry ()->IncreaseFacePI(metricFace.GetFace ());
-//           pitEntry->GetFibEntry ()->UpdateFaceWeight(metricFace.GetFace ());
-// 	  propagatedCount++;
-//           std::cout << "only one face to forward? " << metricFace.GetFace()->GetId() << "\n";
-//     //       std::cout << "SeqNum\t" << interest->GetName ().get (-1).toSeqNum () << "\tFace\t" << metricFace.GetFace()->GetId() << "\n";
-// 	  break; // do only once
-// 	}
-// 
-//   NS_LOG_INFO ("Propagated to " << propagatedCount << " faces");
-// 
-//   }
   std::cout << "\n\n";
   return propagatedCount > 0;
 }
