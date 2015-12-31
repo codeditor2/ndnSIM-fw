@@ -44,6 +44,7 @@
 #include <boost/lambda/lambda.hpp>
 #include <boost/lambda/bind.hpp>
 #include <boost/tuple/tuple.hpp>
+
 namespace ll = boost::lambda;
 
 namespace ns3 {
@@ -352,6 +353,7 @@ ForwardingStrategy::DetectRetransmittedInterest (Ptr<Face> inFace,
   return isRetransmitted;
 }
 
+// ------------------------------------------------------------------------------------------
 void
 ForwardingStrategy::SatisfyPendingInterest (Ptr<Face> inFace,
                                             Ptr<const Data> data,
@@ -367,9 +369,17 @@ ForwardingStrategy::SatisfyPendingInterest (Ptr<Face> inFace,
 
       DidSendOutData (inFace, incoming.m_face, data, pitEntry);
       NS_LOG_DEBUG ("Satisfy " << *incoming.m_face);
+      
+      if (ok)
+      {
+// --------------------------------Update the Pending Interest number-----------------------
+	pitEntry->GetFibEntry ()->DecreaseFacePI(inFace);
+	pitEntry->GetFibEntry ()->UpdateFaceWeight(inFace);
+      }
 
       if (!ok)
         {
+// 	  NS_LOG_INFO ("BEFORE---------");
           m_dropData (data, incoming.m_face);
           NS_LOG_DEBUG ("Cannot satisfy data to " << *incoming.m_face);
         }
@@ -383,6 +393,7 @@ ForwardingStrategy::SatisfyPendingInterest (Ptr<Face> inFace,
 
   // Set pruning timout on PIT entry (instead of deleting the record)
   m_pit->MarkErased (pitEntry);
+  std::cout << "receive a Data ????\n";
 }
 
 void
@@ -401,6 +412,9 @@ ForwardingStrategy::DidReceiveUnsolicitedData (Ptr<Face> inFace,
   // do nothing
 }
 
+/**
+ * important for adding a new face metric !!!!!!!!!!!!
+ */
 void
 ForwardingStrategy::WillSatisfyPendingInterest (Ptr<Face> inFace,
                                                 Ptr<pit::Entry> pitEntry)
@@ -411,6 +425,7 @@ ForwardingStrategy::WillSatisfyPendingInterest (Ptr<Face> inFace,
   if (out != pitEntry->GetOutgoing ().end ())
     {
       pitEntry->GetFibEntry ()->UpdateFaceRtt (inFace, Simulator::Now () - out->m_sendTime);
+      // update the PI !!!!!!!!!!!!!!!!!!!
     }
 
   m_satisfiedInterests (pitEntry);
@@ -562,10 +577,19 @@ ForwardingStrategy::DidSendOutData (Ptr<Face> inFace,
   m_outData (data, inFace == 0, outFace);
 }
 
+// ---------------------------Erase timeout pending interest-----------------------
 void
 ForwardingStrategy::WillEraseTimedOutPendingInterest (Ptr<pit::Entry> pitEntry)
 {
   m_timedOutInterests (pitEntry);
+  
+// --------------------------------Update the Pending Interest number-----------------------
+  for (pit::Entry::out_container::iterator face = pitEntry->GetOutgoing ().begin ();
+       face != pitEntry->GetOutgoing ().end (); face ++)
+    {
+      pitEntry->GetFibEntry ()->DecreaseFacePI (face->m_face);
+      pitEntry->GetFibEntry ()->UpdateFaceWeight(face->m_face);
+    }  
 }
 
 void

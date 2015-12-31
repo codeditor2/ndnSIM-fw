@@ -165,6 +165,7 @@ ConsumerWindow::ScheduleNextPacket ()
       NS_LOG_DEBUG ("Next event in " << (std::min<double> (0.5, m_rtt->RetransmitTimeout ().ToDouble (Time::S))) << " sec");
       m_sendEvent = Simulator::Schedule (Seconds (std::min<double> (0.5, m_rtt->RetransmitTimeout ().ToDouble (Time::S))),
                                          &Consumer::SendPacket, this);
+//       std::cout << "Window: " << m_window << ", InFlight: " << m_inFlight << "\n";
     }
   else if (m_inFlight >= m_window)
     {
@@ -172,12 +173,16 @@ ConsumerWindow::ScheduleNextPacket ()
     }
   else
     {
-      if (m_sendEvent.IsRunning ())
-        {
-          Simulator::Remove (m_sendEvent);
-        }
+//       if (m_window <= static_cast<uint32_t> (300))
+      {
+        if (m_sendEvent.IsRunning ())
+          {
+            Simulator::Remove (m_sendEvent);
+          }
 
-      m_sendEvent = Simulator::ScheduleNow (&Consumer::SendPacket, this);
+        m_sendEvent = Simulator::ScheduleNow (&Consumer::SendPacket, this);
+// 	std::cout << "Window: " << m_window << ", InFlight: " << m_inFlight << "\n";
+      }
     }
 }
 

@@ -31,28 +31,22 @@ namespace fw {
  * @ingroup ndn-fw
  * @brief Forwarding strategy extensions to track simple link status based on data plane performance
  */
-class GreenYellowRed :
-    public Nacks
+class GreenYellowRed : public Nacks
 {
 public:
-  static TypeId
-  GetTypeId (void);
+  static TypeId  GetTypeId (void);
 
 protected:
-  virtual void
-  WillSatisfyPendingInterest (Ptr<Face> inFace,
+  virtual void WillSatisfyPendingInterest (Ptr<Face> inFace,
                               Ptr<pit::Entry> pitEntry);
 
-  virtual bool
-  DoPropagateInterest (Ptr<Face> inFace,
+  virtual bool DoPropagateInterest (Ptr<Face> inFace,
                        Ptr<const Interest> interest,
                        Ptr<pit::Entry> pitEntry);
 
-  virtual void
-  WillEraseTimedOutPendingInterest (Ptr<pit::Entry> pitEntry);
+  virtual void WillEraseTimedOutPendingInterest (Ptr<pit::Entry> pitEntry);
 
-  virtual void
-  DidReceiveValidNack (Ptr<Face> incomingFace,
+  virtual void DidReceiveValidNack (Ptr<Face> incomingFace,
                        uint32_t nackCode,
                        Ptr<const Interest> nack,
                        Ptr<pit::Entry> pitEntry);

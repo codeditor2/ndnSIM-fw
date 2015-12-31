@@ -25,6 +25,7 @@
 #include "ns3/log.h"
 #include "ns3/simulator.h"
 
+#define NDN_WEIGHT_ALPHA 0.9
 #define NDN_RTO_ALPHA 0.125
 #define NDN_RTO_BETA 0.25
 #define NDN_RTO_K 4
@@ -72,7 +73,78 @@ FaceMetric::UpdateRtt (const Time &rttSample)
     }
 }
 
-/////////////////////////////////////////////////////////////////////
+// ------------------------------------------------------------------------------------------
+
+void 
+Entry::IncreaseFacePI (Ptr<Face> face)
+{
+  NS_LOG_FUNCTION ("enter IncreaseFacePI function");
+  FaceMetricContainer::type::index<i_face>::type &faces = m_faces.get<i_face> ();
+  FaceMetricContainer::type::index<i_face>::type::iterator faceIterator = faces.begin();
+  NS_LOG_FUNCTION ("begin to find the updated face");
+  while(faceIterator != faces.end())
+  {
+      if(faceIterator->GetFace() == face)
+      {
+	m_faces.modify (faceIterator, ll::bind (&FaceMetric::SetPI, ll::_1, faceIterator->GetPI() + 1));
+	NS_LOG_FUNCTION ("find the face");
+	return;
+      }
+      faceIterator ++;
+      NS_LOG_FUNCTION ("enter the while loop");
+  }
+  NS_LOG_FUNCTION("do not find the face ????");
+}
+
+void 
+Entry::DecreaseFacePI (Ptr<Face> face)
+{
+  NS_LOG_FUNCTION ("enter DecreaseFacePI function");
+  FaceMetricContainer::type::index<i_face>::type &faces = m_faces.get<i_face> ();
+  FaceMetricContainer::type::index<i_face>::type::iterator faceIterator = faces.begin();
+  NS_LOG_FUNCTION ("begin to find the updated face");
+  while(faceIterator != faces.end())
+  {
+      if(faceIterator->GetFace() == face)
+      {
+	if(faceIterator->GetPI()>0)
+	{
+	  m_faces.modify (faceIterator, ll::bind (&FaceMetric::SetPI, ll::_1, faceIterator->GetPI()-1));
+	  NS_LOG_FUNCTION ("modify the PI value");	  
+	}
+	NS_LOG_FUNCTION ("find the face");
+	return;
+      }
+      faceIterator ++;
+      NS_LOG_FUNCTION ("enter the while loop");
+  }
+  NS_LOG_FUNCTION("do not find the face ????");
+}
+
+void 
+Entry::UpdateFaceWeight (Ptr<Face> face)
+{
+  NS_LOG_FUNCTION ("enter UpdateFaceWeight function");
+  FaceMetricContainer::type::index<i_face>::type &faces = m_faces.get<i_face> ();
+  FaceMetricContainer::type::index<i_face>::type::iterator faceIterator = faces.begin();
+  NS_LOG_FUNCTION ("begin to find the updated face");
+  while(faceIterator != faces.end())
+  {
+      if(faceIterator->GetFace() == face)
+      {
+	double new_weight = NDN_WEIGHT_ALPHA*faceIterator->GetWeight() + (1.0-NDN_WEIGHT_ALPHA)*faceIterator->GetPI();
+	m_faces.modify (faceIterator, ll::bind (&FaceMetric::SetWeight, ll::_1, new_weight));
+	NS_LOG_FUNCTION ("find the face");
+	return;
+      }
+      faceIterator ++;
+      NS_LOG_FUNCTION ("enter the while loop");
+  }
+  NS_LOG_FUNCTION("do not find the face ????");
+  
+}
+// ------------------------------------------------------------------------------------------
+
 
 void
 Entry::UpdateFaceRtt (Ptr<Face> face, const Time &sample)
@@ -93,7 +165,7 @@ Entry::UpdateFaceRtt (Ptr<Face> face, const Time &sample)
 void
 Entry::UpdateStatus (Ptr<Face> face, FaceMetric::Status status)
 {
-  NS_LOG_FUNCTION (this << boost::cref(*face) << status);
+//  NS_LOG_FUNCTION (this << boost::cref(*face) << status);
 
   FaceMetricByFace::type::iterator record = m_faces.get<i_face> ().find (face);
   if (record == m_faces.get<i_face> ().end ())
@@ -111,7 +183,7 @@ Entry::UpdateStatus (Ptr<Face> face, FaceMetric::Status status)
 void
 Entry::AddOrUpdateRoutingMetric (Ptr<Face> face, int32_t metric)
 {
-  NS_LOG_FUNCTION (this);
+//  NS_LOG_FUNCTION (this);
   NS_ASSERT_MSG (face != NULL, "Trying to Add or Update NULL face");
 
   FaceMetricByFace::type::iterator record = m_faces.get<i_face> ().find (face);
@@ -139,7 +211,7 @@ Entry::AddOrUpdateRoutingMetric (Ptr<Face> face, int32_t metric)
 void
 Entry::SetRealDelayToProducer (Ptr<Face> face, Time delay)
 {
-  NS_LOG_FUNCTION (this);
+//  NS_LOG_FUNCTION (this);
   NS_ASSERT_MSG (face != NULL, "Trying to Update NULL face");
 
   FaceMetricByFace::type::iterator record = m_faces.get<i_face> ().find (face);

@@ -27,6 +27,8 @@
 #include "best-route.h"
 #include "flooding.h"
 #include "smart-flooding.h"
+#include "ndn-entropy-strategy.h"
+
 
 namespace ns3 {
 namespace ndn {
@@ -44,6 +46,10 @@ template class PerOutFaceLimits<SmartFlooding>;
 typedef PerOutFaceLimits<SmartFlooding> PerOutFaceLimitsSmartFlooding;
 NS_OBJECT_ENSURE_REGISTERED (PerOutFaceLimitsSmartFlooding);
 
+template class PerOutFaceLimits<EntropyStrategy>;
+typedef PerOutFaceLimits<EntropyStrategy> PerOutFaceLimitsEntropyStrategy;
+NS_OBJECT_ENSURE_REGISTERED (PerOutFaceLimitsEntropyStrategy);
+
 #ifdef DOXYGEN
 // /**
 //  * \brief Strategy implementing per-out-face limits on top of BestRoute strategy
@@ -59,6 +65,11 @@ class Flooding::PerOutFaceLimits : public ::ns3::ndn::fw::PerOutFaceLimits<Flood
  * \brief Strategy implementing per-out-face limits on top of SmartFlooding strategy
  */
 class SmartFlooding::PerOutFaceLimits : public ::ns3::ndn::fw::PerOutFaceLimits<SmartFlooding> { };
+
+/**
+ * \brief Strategy implementing per-out-face limits on top of EntropyStrategy strategy
+ */
+class EntropyStrategy::PerOutFaceLimits : public ::ns3::ndn::fw::PerOutFaceLimits<EntropyStrategy> { };
 #endif
 
 } // namespace fw

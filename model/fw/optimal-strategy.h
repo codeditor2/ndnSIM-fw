@@ -32,28 +32,32 @@ namespace fw {
 
 /**
  * @ingroup ndn-fw
- * @brief Best route strategy
+ * @brief Optimal strategy
  */
-class BestRoute : public GreenYellowRed
+class OptimalRoute :
+    public GreenYellowRed
 {
 private:
   typedef GreenYellowRed super;
 
 public:
-  static TypeId GetTypeId ();
+  static TypeId
+  GetTypeId ();
 
   /**
    * @brief Helper function to retrieve logging name for the forwarding strategy
    */
-  static std::string GetLogName ();
+  static std::string
+  GetLogName ();
   
   /**
    * @brief Default constructor
    */
-  BestRoute ();
+  OptimalRoute ();
         
   // from super
-  virtual bool DoPropagateInterest (Ptr<Face> incomingFace,
+  virtual bool
+  DoPropagateInterest (Ptr<Face> incomingFace,
                        Ptr<const Interest> interest,
                        Ptr<pit::Entry> pitEntry);
 protected:

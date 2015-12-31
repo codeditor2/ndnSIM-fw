@@ -19,8 +19,9 @@ main (int argc, char *argv[])
   /****************************************************************************/
   // Install CCNx stack on all nodes
   ndn::StackHelper ccnxHelper;
-  ccnxHelper.SetContentStore ("ns3::ndn::cs::Lru", "MaxSize", "1000");
-  ccnxHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute");
+ // ccnxHelper.SetContentStore ("ns3::ndn::cs::Lru", "MaxSize", "1000");
+  ccnxHelper.SetForwardingStrategy ("ns3::ndn::fw::EntropyStrategy");
+  //ccnxHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute");
   ccnxHelper.InstallAll ();
   /****************************************************************************/
   // Installing global routing interface on all nodes
@@ -54,31 +55,31 @@ main (int argc, char *argv[])
   /****************************************************************************/
   // on the first to ninth consumer node install a Consumer application
   // that will express interests in /dst1 to /dst9 namespace
-  consumerHelper.SetPrefix ("/dst9");
+  consumerHelper.SetPrefix ("/dst");
   consumerHelper.Install (consumer1);
 
-  consumerHelper.SetPrefix ("/dst8");
+  consumerHelper.SetPrefix ("/dst");
   consumerHelper.Install (consumer2);
 
-  consumerHelper.SetPrefix ("/dst7");
+  consumerHelper.SetPrefix ("/dst");
   consumerHelper.Install (consumer3);
 
-  consumerHelper.SetPrefix ("/dst6");
+  consumerHelper.SetPrefix ("/dst");
   consumerHelper.Install (consumer4);
 
-  consumerHelper.SetPrefix ("/dst5");
+  consumerHelper.SetPrefix ("/dst");
   consumerHelper.Install (consumer5);
 
-  consumerHelper.SetPrefix ("/dst4");
+  consumerHelper.SetPrefix ("/dst");
   consumerHelper.Install (consumer6);
 
-  consumerHelper.SetPrefix ("/dst3");
+  consumerHelper.SetPrefix ("/dst");
   consumerHelper.Install (consumer7);
 
-  consumerHelper.SetPrefix ("/dst2");
+  consumerHelper.SetPrefix ("/dst");
   consumerHelper.Install (consumer8);
 
-  consumerHelper.SetPrefix ("/dst1");
+  consumerHelper.SetPrefix ("/dst");
   consumerHelper.Install (consumer9);
   
   /****************************************************************************/
@@ -87,40 +88,40 @@ main (int argc, char *argv[])
   /****************************************************************************/
   // Register /dst1 to /dst9 prefix with global routing controller and
   // install producer that will satisfy Interests in /dst1 to /dst9 namespace
-  ccnxGlobalRoutingHelper.AddOrigins ("/dst1", producer1);
-  producerHelper.SetPrefix ("/dst1");
+  ccnxGlobalRoutingHelper.AddOrigins ("/dst", producer1);
+  producerHelper.SetPrefix ("/dst");
   producerHelper.Install (producer1);
 
-  ccnxGlobalRoutingHelper.AddOrigins ("/dst2", producer2);
-  producerHelper.SetPrefix ("/dst2");
+  ccnxGlobalRoutingHelper.AddOrigins ("/dst", producer2);
+  producerHelper.SetPrefix ("/dst");
   producerHelper.Install (producer2);
 
-  ccnxGlobalRoutingHelper.AddOrigins ("/dst3", producer3);
-  producerHelper.SetPrefix ("/dst3");
+  ccnxGlobalRoutingHelper.AddOrigins ("/dst", producer3);
+  producerHelper.SetPrefix ("/dst");
   producerHelper.Install (producer3);
 
-  ccnxGlobalRoutingHelper.AddOrigins ("/dst4", producer4);
-  producerHelper.SetPrefix ("/dst4");
+  ccnxGlobalRoutingHelper.AddOrigins ("/dst", producer4);
+  producerHelper.SetPrefix ("/dst");
   producerHelper.Install (producer4);
 
-  ccnxGlobalRoutingHelper.AddOrigins ("/dst5", producer5);
-  producerHelper.SetPrefix ("/dst5");
+  ccnxGlobalRoutingHelper.AddOrigins ("/dst", producer5);
+  producerHelper.SetPrefix ("/dst");
   producerHelper.Install (producer5);
 
-  ccnxGlobalRoutingHelper.AddOrigins ("/dst6", producer6);
-  producerHelper.SetPrefix ("/dst6");
+  ccnxGlobalRoutingHelper.AddOrigins ("/dst", producer6);
+  producerHelper.SetPrefix ("/dst");
   producerHelper.Install (producer6);
 
-  ccnxGlobalRoutingHelper.AddOrigins ("/dst7", producer7);
-  producerHelper.SetPrefix ("/dst7");
+  ccnxGlobalRoutingHelper.AddOrigins ("/dst", producer7);
+  producerHelper.SetPrefix ("/dst");
   producerHelper.Install (producer7);
 
-  ccnxGlobalRoutingHelper.AddOrigins ("/dst8", producer8);
-  producerHelper.SetPrefix ("/dst8");
+  ccnxGlobalRoutingHelper.AddOrigins ("/dst", producer8);
+  producerHelper.SetPrefix ("/dst");
   producerHelper.Install (producer8);
 
-  ccnxGlobalRoutingHelper.AddOrigins ("/dst9", producer9);
-  producerHelper.SetPrefix ("/dst9");
+  ccnxGlobalRoutingHelper.AddOrigins ("/dst", producer9);
+  producerHelper.SetPrefix ("/dst");
   producerHelper.Install (producer9);
 
   /*****************************************************************************/
@@ -132,7 +133,7 @@ main (int argc, char *argv[])
   /****************************************************************************/
   //Tracer:
 
-  L2RateTracer::InstallAll ("drop-trace.txt", Seconds (0.5));
+  L2RateTracer::InstallAll ("/home/wangjiawei/experimentResult/results/drop-trace.txt", Seconds (0.5));
 
   Simulator::Run ();
   Simulator::Destroy ();

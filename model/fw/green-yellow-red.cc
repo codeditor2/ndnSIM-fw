@@ -90,6 +90,10 @@ GreenYellowRed::DoPropagateInterest (Ptr<Face> inFace,
   return propagatedCount > 0;
 }
 
+/**
+ * important !!!!!!!!!!!!!!!!!!!!!!!!!11
+ * 
+ */
 void
 GreenYellowRed::WillSatisfyPendingInterest (Ptr<Face> inFace,
                                             Ptr<pit::Entry> pitEntry)
@@ -97,6 +101,7 @@ GreenYellowRed::WillSatisfyPendingInterest (Ptr<Face> inFace,
   if (inFace != 0)
     {
       // Update metric status for the incoming interface in the corresponding FIB entry
+// received a Data packet from this "inFace", so the statue of this face should be changed to GREEN
       pitEntry->GetFibEntry ()->UpdateStatus (inFace, fib::FaceMetric::NDN_FIB_GREEN);
     }
 

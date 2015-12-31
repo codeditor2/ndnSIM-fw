@@ -19,7 +19,7 @@
  *         Ilya Moiseenko <iliamo@cs.ucla.edu>
  */
 
-#include "best-route.h"
+#include "optimal-strategy.h"
 
 #include "ns3/ndn-interest.h"
 #include "ns3/ndn-pit.h"
@@ -27,75 +27,93 @@
 
 #include "ns3/assert.h"
 #include "ns3/log.h"
+#include "ns3/core-module.h"
 
 #include <boost/foreach.hpp>
 #include <boost/lambda/lambda.hpp>
 #include <boost/lambda/bind.hpp>
+
+#include <math.h>
+
+#include <stdlib.h>
+#include <time.h>
+
 namespace ll = boost::lambda;
 
 namespace ns3 {
 namespace ndn {
 namespace fw {
 
-NS_OBJECT_ENSURE_REGISTERED (BestRoute);
+NS_OBJECT_ENSURE_REGISTERED (OptimalRoute);
 
-LogComponent BestRoute::g_log = LogComponent (BestRoute::GetLogName ().c_str ());
+LogComponent OptimalRoute::g_log = LogComponent (OptimalRoute::GetLogName ().c_str ());
 
-std::string BestRoute::GetLogName ()
+std::string
+OptimalRoute::GetLogName ()
 {
-  return super::GetLogName ()+".BestRoute";
+  return super::GetLogName ()+".OptimalRoute";
 }
 
 
-TypeId BestRoute::GetTypeId (void)
+TypeId
+OptimalRoute::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::ndn::fw::BestRoute")
+  static TypeId tid = TypeId ("ns3::ndn::fw::OptimalRoute")
     .SetGroupName ("Ndn")
     .SetParent <super> ()
-    .AddConstructor <BestRoute> ()
+    .AddConstructor <OptimalRoute> ()
     ;
   return tid;
 }
 
-BestRoute::BestRoute ()
+OptimalRoute::OptimalRoute ()
 {
 }
 
 bool
-BestRoute::DoPropagateInterest (Ptr<Face> inFace,
+OptimalRoute::DoPropagateInterest (Ptr<Face> inFace,
                                 Ptr<const Interest> interest,
                                 Ptr<pit::Entry> pitEntry)
 {
   NS_LOG_FUNCTION (this << interest->GetName ());
 
-  // No real need to call parent's (green-yellow-red's strategy) method, since it is incorporated
-  // in the logic of the BestRoute strategy
-  //
-  // // Try to work out with just green faces
-  // bool greenOk = super::DoPropagateInterest (inFace, interest, origPacket, pitEntry);
-  // if (greenOk)
-  //   return true;
+  
+  UniformVariable x (0.0,1.0);
+  double p = x.GetValue ();
+  double weightSum = 0.0;
+  double per_probability=  0.0;
+
+  BOOST_FOREACH (const fib::FaceMetric &metricFace, pitEntry->GetFibEntry ()->m_faces.get<fib::i_metric> ())
+    {
+      weightSum += 1.0/metricFace.GetWeight();
+    }
+    
 
   int propagatedCount = 0;
 
   BOOST_FOREACH (const fib::FaceMetric &metricFace, pitEntry->GetFibEntry ()->m_faces.get<fib::i_metric> ())
     {
-      NS_LOG_DEBUG ("Trying " << boost::cref(metricFace));
-      if (metricFace.GetStatus () == fib::FaceMetric::NDN_FIB_RED) // all non-read faces are in front
-        break;
+      per_probability += 1.0/(weightSum*metricFace.GetWeight());
+      if(per_probability < p)
+      {
+	continue;
+      }
 
-      if (!TrySendOutInterest (inFace, metricFace.GetFace (), interest, pitEntry))
-        {
-          continue;
-        }
-
+      if (TrySendOutInterest (inFace, metricFace.GetFace (), interest, pitEntry))
+        {	  
+          pitEntry->GetFibEntry ()->IncreaseFacePI(metricFace.GetFace());
+	  pitEntry->GetFibEntry ()->UpdateFaceWeight(metricFace.GetFace());
+	  NS_LOG_INFO ("SeqNum\t" << interest->GetName ().get (-1).toSeqNum () << "\tFace\t" << metricFace.GetFace()->GetId());
+// 	  std::cout << "SeqNum\t" << interest->GetName ().get (-1).toSeqNum () << "\tFace\t" << metricFace.GetFace()->GetId() << "\n";
+//           std::cout << metricFace.GetFace()->GetId() << "\n";
+        } else {
+	   continue;
+	}
+      
       propagatedCount++;
-//       std::cout << metricFace.GetFace()->GetId() << "\n";
-//       std::cout << "SeqNum\t" << interest->GetName ().get (-1).toSeqNum () << "\tFace\t" << metricFace.GetFace()->GetId() << "\n";
       break; // do only once
     }
 
-  NS_LOG_INFO ("Propagated to " << propagatedCount << " faces");
   return propagatedCount > 0;
 }
 

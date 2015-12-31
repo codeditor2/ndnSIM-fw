@@ -163,7 +163,6 @@ def build(bld):
 
         "model/fw/ndn-forwarding-strategy.h",
         "model/fw/ndn-fw-tag.h",
-       # "model/fw/ndn-entropy-strategy.h",
 
         "model/wire/ndn-wire.h",
 

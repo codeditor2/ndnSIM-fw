@@ -20,40 +20,68 @@
  */
 
 
-#ifndef NDNSIM_BEST_ROUTE_H
-#define NDNSIM_BEST_ROUTE_H
+#ifndef NDNSIM_ENTROPY_ROUTE_H
+#define NDNSIM_ENTROPY_ROUTE_H
 
+#include "ns3/ptr.h"
+#include "ns3/nstime.h"
+#include "ns3/ndn-face.h"
+#include "ns3/ndn-name.h"
+#include "ns3/ndn-limits.h"
+#include "ns3/traced-value.h"
+
+
+#include "ns3/int64x64.h"
+
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/tag.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/composite_key.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/random_access_index.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/mem_fun.hpp>
+#include <boost/lexical_cast.hpp>  
+
+#include "ns3/ndn-pit-entry.h"
 #include "green-yellow-red.h"
 #include "ns3/log.h"
+
+
+
 
 namespace ns3 {
 namespace ndn {
 namespace fw {
-
+  
 /**
  * @ingroup ndn-fw
- * @brief Best route strategy
+ * @brief Entropy route strategy
  */
-class BestRoute : public GreenYellowRed
+class RandomStrategy :
+    public GreenYellowRed
 {
 private:
   typedef GreenYellowRed super;
 
 public:
-  static TypeId GetTypeId ();
+  static TypeId
+  GetTypeId ();
 
   /**
    * @brief Helper function to retrieve logging name for the forwarding strategy
    */
-  static std::string GetLogName ();
+  static std::string
+  GetLogName ();
   
   /**
    * @brief Default constructor
    */
-  BestRoute ();
+  RandomStrategy ();
         
   // from super
-  virtual bool DoPropagateInterest (Ptr<Face> incomingFace,
+  virtual bool
+  DoPropagateInterest (Ptr<Face> incomingFace,
                        Ptr<const Interest> interest,
                        Ptr<pit::Entry> pitEntry);
 protected:
@@ -64,4 +92,4 @@ protected:
 } // namespace ndn
 } // namespace ns3
 
-#endif // NDNSIM_BEST_ROUTE_H
+#endif // NDNSIM_ENTROPY_ROUTE_H

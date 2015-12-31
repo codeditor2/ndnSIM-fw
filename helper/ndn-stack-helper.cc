@@ -63,9 +63,7 @@ NS_LOG_COMPONENT_DEFINE ("ndn.StackHelper");
 namespace ns3 {
 namespace ndn {
 
-StackHelper::StackHelper ()
-  : m_limitsEnabled (false)
-  , m_needSetDefaultRoutes (false)
+StackHelper::StackHelper () : m_limitsEnabled (false), m_needSetDefaultRoutes (false)
 {
   m_ndnFactory.         SetTypeId ("ns3::ndn::L3Protocol");
   m_strategyFactory.    SetTypeId ("ns3::ndn::fw::Flooding");

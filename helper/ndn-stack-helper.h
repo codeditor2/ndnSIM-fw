@@ -183,8 +183,7 @@ public:
    * \returns list of installed faces in the form of a smart pointer
    * to NdnFaceContainer object
    */
-  Ptr<FaceContainer>
-  Install (const std::string &nodeName) const;
+  Ptr<FaceContainer> Install (const std::string &nodeName) const;
 
   /**
    * \brief Install Ndn stack on the node
@@ -197,8 +196,7 @@ public:
    * \returns list of installed faces in the form of a smart pointer
    * to FaceContainer object
    */
-  Ptr<FaceContainer>
-  Install (Ptr<Node> node) const;
+  Ptr<FaceContainer> Install (Ptr<Node> node) const;
 
   /**
    * \brief Install Ndn stack on each node in the input container
@@ -212,8 +210,7 @@ public:
    * \returns list of installed faces in the form of a smart pointer
    * to FaceContainer object
    */
-  Ptr<FaceContainer>
-  Install (const NodeContainer &c) const;
+  Ptr<FaceContainer> Install (const NodeContainer &c) const;
 
   /**
    * \brief Install Ndn stack on all nodes in the simulation
@@ -221,8 +218,7 @@ public:
    * \returns list of installed faces in the form of a smart pointer
    * to FaceContainer object
    */
-  Ptr<FaceContainer>
-  InstallAll () const;
+  Ptr<FaceContainer> InstallAll () const;
 
   /**
    * \brief Add forwarding entry to FIB
@@ -232,8 +228,7 @@ public:
    * \param faceId Face index
    * \param metric Routing metric
    */
-  static void
-  AddRoute (const std::string &nodeName, const std::string &prefix, uint32_t faceId, int32_t metric);
+  static void AddRoute (const std::string &nodeName, const std::string &prefix, uint32_t faceId, int32_t metric);
 
   /**
    * \brief Add forwarding entry to FIB

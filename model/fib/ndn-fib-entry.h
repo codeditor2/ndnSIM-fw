@@ -61,9 +61,9 @@ public:
   /**
    * @brief Color codes for FIB face status
    */
-  enum Status { NDN_FIB_GREEN = 1,
-                NDN_FIB_YELLOW = 2,
-                NDN_FIB_RED = 3 };
+  enum Status { NDN_FIB_GREEN = 100,
+                NDN_FIB_YELLOW = 200,
+                NDN_FIB_RED = 300 };
 public:
   /**
    * \brief Metric constructor
@@ -78,6 +78,8 @@ public:
     , m_sRtt   (Seconds (0))
     , m_rttVar (Seconds (0))
     , m_realDelay (Seconds (0))
+    , m_pi (int32_t(1))
+    , m_weight (double(1.0))
   { }
 
   /**
@@ -186,6 +188,33 @@ public:
     return m_status;
   }
 
+// ------------------------------------------------------------------------------------------
+  int32_t
+  GetPI () const
+  {
+    return m_pi;
+  }
+  
+  void
+  SetPI (int32_t pi)
+  {
+    m_pi = pi;
+  }
+  
+  double
+  GetWeight() const
+  {
+    return m_weight;
+  }
+  
+  void
+  SetWeight(double weight)
+  {
+    m_weight = weight;
+  }
+  
+// ------------------------------------------------------------------------------------------ 
+
 private:
   friend std::ostream& operator<< (std::ostream& os, const FaceMetric &metric);
 
@@ -203,6 +232,10 @@ private:
   Time m_rttVar;       ///< \brief round-trip time variation
 
   Time m_realDelay;    ///< \brief real propagation delay to the producer, calculated based on NS-3 p2p link delays
+  
+  int32_t m_pi;		///< \brief Pending Interest number (PI) of this face
+  double m_weight;	///< \brief a moving average
+  
 };
 
 /// @cond include_hidden
@@ -309,7 +342,26 @@ public:
    */
   void
   UpdateFaceRtt (Ptr<Face> face, const Time &sample);
-
+  
+// ------------------------------------------------------------------------------------------
+  /**
+   * @brief Increase the Pending Interest number of this face
+   */
+  void 
+  IncreaseFacePI (Ptr<Face> face);
+  
+  /**
+   * @brief Decrease the Pending Interest number of this face
+   */
+  void
+  DecreaseFacePI (Ptr<Face> face);
+  
+  /**
+   * @brief Update the moving average based on the instantaneous value of PI
+   */
+  void UpdateFaceWeight (Ptr<Face> face);
+// ------------------------------------------------------------------------------------------
+  
   /**
    * \brief Get prefix for the FIB entry
    */
@@ -347,7 +399,7 @@ public:
 
   Ptr<const Name> m_prefix; ///< \brief Prefix of the FIB entry
   FaceMetricContainer::type m_faces; ///< \brief Indexed list of faces
-
+//
   bool m_needsProbing;      ///< \brief flag indicating that probing should be performed
 };
 

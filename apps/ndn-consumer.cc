@@ -212,6 +212,8 @@ Consumer::SendPacket ()
   interest->GetPayload ()->AddPacketTag (hopCountTag);
 
   m_transmittedInterests (interest, this, m_face);
+//   std::cout << Simulator::Now ().ToDouble (Time::S) << "\n";
+  
   m_face->ReceiveInterest (interest);
 
   ScheduleNextPacket ();
