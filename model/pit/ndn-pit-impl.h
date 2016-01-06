@@ -265,8 +265,7 @@ PitImpl<Policy>::RescheduleCleaning ()
                 nextEvent.ToDouble (Time::S) << "s (at " <<
                 i_time.begin ()->GetExpireTime () << "s abs time");
 
-  m_cleanEvent = Simulator::Schedule (nextEvent,
-                                      &PitImpl<Policy>::CleanExpired, this);
+  m_cleanEvent = Simulator::Schedule (nextEvent, &PitImpl<Policy>::CleanExpired, this);
 }
 
 template<class Policy>

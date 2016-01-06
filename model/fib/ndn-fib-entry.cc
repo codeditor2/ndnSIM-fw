@@ -143,6 +143,54 @@ Entry::UpdateFaceWeight (Ptr<Face> face)
   NS_LOG_FUNCTION("do not find the face ????");
   
 }
+
+void
+Entry::UpdateAllCurrentWeight (void)
+{
+  NS_LOG_FUNCTION ("enter UpdateFaceWeight function");
+  
+  FaceMetricContainer::type::index<i_face>::type &faces = m_faces.get<i_face> ();
+  FaceMetricContainer::type::index<i_face>::type::iterator faceIterator = faces.begin();
+  
+  while(faceIterator != faces.end())
+  {
+    double new_weight = faceIterator->GetCurrentWeight() + faceIterator->GetEffectiveWeight();
+    m_faces.modify (faceIterator, ll::bind (&FaceMetric::SetCurrentWeight, ll::_1, new_weight));
+    faceIterator ++;
+  }
+}
+
+void
+Entry::UpdateCurrentWeight (Ptr<Face> face)
+{
+  NS_ASSERT_MSG (face != NULL, "Trying to Add or Update NULL face");
+  
+  NS_LOG_FUNCTION ("enter UpdateCurrentWeight function");
+  
+  double new_weight = 0.0;
+  double total_weight = 0.0;
+  FaceMetricContainer::type::index<i_face>::type &faces = m_faces.get<i_face> ();
+  FaceMetricContainer::type::index<i_face>::type::iterator faceIterator = faces.begin();
+  FaceMetricContainer::type::index<i_face>::type::iterator selectFaceIterator = faces.end();
+  
+  while(faceIterator != faces.end())
+  {
+    total_weight += faceIterator->GetEffectiveWeight();
+    if(faceIterator->GetFace() == face)
+    {
+      selectFaceIterator = faceIterator;
+    }
+    faceIterator ++;
+  }
+  
+  if(selectFaceIterator != faces.end())
+  {
+    new_weight = selectFaceIterator->GetCurrentWeight() - total_weight;
+    m_faces.modify (selectFaceIterator, ll::bind (&FaceMetric::SetCurrentWeight, ll::_1, new_weight));
+  }
+}
+
+
 // ------------------------------------------------------------------------------------------
 
 

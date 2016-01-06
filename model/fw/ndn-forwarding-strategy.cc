@@ -393,7 +393,7 @@ ForwardingStrategy::SatisfyPendingInterest (Ptr<Face> inFace,
 
   // Set pruning timout on PIT entry (instead of deleting the record)
   m_pit->MarkErased (pitEntry);
-  std::cout << "receive a Data ????\n";
+//  std::cout << "receive a Data ????\n";
 }
 
 void

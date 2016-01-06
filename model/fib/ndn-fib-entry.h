@@ -80,6 +80,9 @@ public:
     , m_realDelay (Seconds (0))
     , m_pi (int32_t(1))
     , m_weight (double(1.0))
+    , weight (double(0.5))
+    , effective_weight (weight)
+    , current_weight (double(0.0))
   { }
 
   /**
@@ -212,6 +215,48 @@ public:
   {
     m_weight = weight;
   }
+ 
+ 
+ /**
+  * 
+  * for Weighted Round Robin Algorigthm
+  * 
+  */
+  void 
+  SetWRRWeight(double new_weight)
+  {
+    weight = new_weight;
+  }
+  
+  double
+  GetWRRWeight() const
+  {
+    return weight;
+  }
+  
+  void
+  SetEffectiveWeight(double new_weight)
+  {
+    effective_weight = new_weight;
+  }
+  
+  double
+  GetEffectiveWeight() const
+  {
+    return effective_weight;
+  }
+  
+  void
+  SetCurrentWeight(double new_weight)
+  {
+    current_weight = new_weight;
+  }
+  
+  double
+  GetCurrentWeight() const
+  {
+    return current_weight;
+  }
   
 // ------------------------------------------------------------------------------------------ 
 
@@ -235,6 +280,10 @@ private:
   
   int32_t m_pi;		///< \brief Pending Interest number (PI) of this face
   double m_weight;	///< \brief a moving average
+  
+  double weight;
+  double effective_weight;
+  double current_weight;     	///< \brief 
   
 };
 
@@ -360,6 +409,22 @@ public:
    * @brief Update the moving average based on the instantaneous value of PI
    */
   void UpdateFaceWeight (Ptr<Face> face);
+  
+  /**
+   * @brief Update all current_weight value
+   */
+  void UpdateAllCurrentWeight (void);
+  
+  
+  /**
+   * @brief Update the cueerent_weight value of face
+   */
+  void UpdateCurrentWeight (Ptr<Face> face);
+  
+  
+  
+  
+  
 // ------------------------------------------------------------------------------------------
   
   /**

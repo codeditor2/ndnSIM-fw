@@ -80,18 +80,18 @@ MDPF3Strategy::DoPropagateInterest (Ptr<Face> inFace,
   double per_probability=  0.0;
   double total_score = 0.0;
   
-  std::cout << "receive from " << inFace->GetId() << "\n";
+//  std::cout << "receive from " << inFace->GetId() << "\n";
   
-  std::cout << "alternative faces are:\n";
+//  std::cout << "alternative faces are:\n";
   BOOST_FOREACH (const fib::FaceMetric &metricFace, pitEntry->GetFibEntry ()->m_faces.get<fib::i_metric> ())
   {
     if(metricFace.GetFace() != inFace)
     {
-        std::cout << metricFace.GetFace()->GetId() << "\t";
+ //       std::cout << metricFace.GetFace()->GetId() << "\t";
         FacesContainer.insert(FaceMetricWithPI( metricFace.GetFace(),metricFace.GetStatus(),metricFace.GetSRtt(),metricFace.GetRoutingCost(), metricFace.GetWeight() ) ); 
     }
   }
-  std::cout << "\n";
+//  std::cout << "\n";
   
   //data standard pre-process
   if(FacesContainer.size() >= 1 )
@@ -178,7 +178,7 @@ MDPF3Strategy::DoPropagateInterest (Ptr<Face> inFace,
 	status_weight = 1.0;
     }
  
-    std::cout << "weight1\t" << status_weight << "\tweight2\t" << m_sRtt_weight << "\tweight3\t" << m_pi_weight << "\n";
+//    std::cout << "weight1\t" << status_weight << "\tweight2\t" << m_sRtt_weight << "\tweight3\t" << m_pi_weight << "\n";
     
 // (5)
     Ptr<Face> outFace = NULL;
@@ -189,9 +189,9 @@ MDPF3Strategy::DoPropagateInterest (Ptr<Face> inFace,
       double score = status_weight * FaceIteratorByStatus->GetStatusFormal() + m_sRtt_weight * FaceIteratorByStatus->GetSRttFormal() + m_pi_weight * FaceIteratorByStatus->GetPIFormal();
       total_score += score;
       FacesContainer.modify (FaceIteratorByStatus, ll::bind (&FaceMetricWithPI::SetScore, ll::_1, score)); 
-      std::cout << FaceIteratorByStatus->GetFace()->GetId() << " score \t" << score << "\t";
+//      std::cout << FaceIteratorByStatus->GetFace()->GetId() << " score \t" << score << "\t";
     } 
-    std::cout << "\n";
+//    std::cout << "\n";
     
     BOOST_FOREACH (const FaceMetricWithPI &FaceIteratorByScore, FacesContainer.get<i_score>())
     {
@@ -205,14 +205,14 @@ MDPF3Strategy::DoPropagateInterest (Ptr<Face> inFace,
       {
 	  pitEntry->GetFibEntry ()->IncreaseFacePI(outFace);
 	  pitEntry->GetFibEntry ()->UpdateFaceWeight(outFace);
-	  std::cout << "forward by " << outFace->GetId() << "\n";
+//	  std::cout << "forward by " << outFace->GetId() << "\n";
 	  propagatedCount++;
 	  break; // do only once;
       }
     }     
     
   }
-  std::cout << "\n\n";
+//  std::cout << "\n\n";
   return propagatedCount > 0;
 }
 
